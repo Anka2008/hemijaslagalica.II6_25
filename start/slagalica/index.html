@@ -204,6 +204,13 @@
       animation: pulse 0.5s infinite;
     }
 
+    #longestWord {
+  font-weight: bold;
+  font-size: 18px;
+  margin: 10px 0;
+  color: #6a4c93;
+}
+
     /* Responsive design */
     @media (max-width: 600px) {
       .container {
@@ -266,6 +273,7 @@
       <div class="modal-content">
         <h2>Kraj igre!</h2>
         <p id="finalScore"></p>
+        <p id="longestWord"></p>  <!-- Dodajte ovu liniju -->
         <button id="btnToStart">Nazad na meni</button>
       </div>
     </div>
@@ -286,94 +294,45 @@
     const LETTERS_COUNT = 14;
 
     const LETTER_SETS = [
-      ['A','T','O','M','N','I','R','E','K','C','U','S','P','B'],  // Skup 0
-      ['D','L','J','V','Z','Č','Š','Ć','Đ','F','H','G','Q','W'],  // Skup 1
-      ['A','E','I','O','U','S','M','N','T','L','R','K','P','B'],  // Skup 2
-      ['C','R','A','S','E','P','U','K','I','N','O','M','T','L'],  // Skup 3
-      ['S','P','A','T','O','K','I','N','R','M','U','E','B','L'],  // Skup 4
-      ['B','C','D','F','G','H','J','K','L','M','N','P','R','S']   // Skup 5
+      ['L','O','M','H','R','K','S','E','D','A','I','H','A','T'],  // Skup 0
     ];
 
     // Za svaki skup slova dodeljujemo i odgovarajući objekat sa rečima:
     const ALLOWED_WORDS_SETS = [
       // Skup 0
       {
-        'ATOM': 4 * 10,
-        'ION': 3 * 10,
-        'UREA': 4 * 10,
-        'NEON': 4 * 10,
-        'BOR': 3 * 10,
-        'CINK': 4 * 10,
-        'KAP': 3 * 10,
-        'SUMA': 4 * 10,
-        'ATOMSKI': 7 * 10,
-        'KATION': 6 * 10,
-        'REAKCIJA': 8 * 10,
-        'SUMPOR': 6 * 10
+        'HLOR': 4 * 10,
+        'HROM': 4 * 10,
+        'SOLI': 4 * 10,
+        'METAL': 5 * 10,
+        'OKSID': 5 * 10,
+        'KISELA': 6 * 10,
+        'KISELO': 6 * 10,
+        'METALI': 6 * 10,
+        'HROMAT': 6 * 10,
+        'METALOID': 8 * 10,
+        'SALITRA': 7 * 10,
+        'HEKSAHIDRAT': 11 * 10
       },
       // Skup 1
       {
-        'DAN': 3 * 10,
-        'LJUBAV': 6 * 10,
-        'VODA': 4 * 10,
-        'ZRAK': 3 * 10,
-        'ŠUM': 3 * 10,
-        'ĆEŠALJ': 6 * 10,
-        'ĐAK': 3 * 10,
-        'FENG': 4 * 10,
-        'HEROJ': 5 * 10,
-        'GRAF': 4 * 10
+        
       },
       // Skup 2
       {
-        'AJMO': 4 * 10,
-        'EKO': 3 * 10,
-        'ISO': 3 * 10,
-        'UMAK': 4 * 10,
-        'SUM': 3 * 10,
-        'MINA': 4 * 10,
-        'TON': 3 * 10,
-        'LIK': 3 * 10,
-        'RIBA': 4 * 10,
-        'KUPA': 4 * 10,
-        'PUMA': 4 * 10,
-        'BATA': 4 * 10
+        
       },
       // Skup 3
       {
-        'CRNA': 4 * 10,
-        'RASPORED': 8 * 10,
-        'ASEP': 4 * 10,
-        'PUK': 3 * 10,
-        'INK': 3 * 10,
-        'ON': 2 * 10,
-        'MOT': 3 * 10,
-        'TALAS': 5 * 10,
-        'LOKAL': 5 * 10
+        
       },
       // Skup 4
       {
-        'SPAT': 4 * 10,
-        'TOK': 3 * 10,
-        'INAR': 4 * 10,
-        'RUM': 3 * 10,
-        'UBE': 3 * 10,
-        'BLE': 3 * 10,
-        'SILA': 4 * 10,
-        'MALA': 4 * 10,
-        'LAMA': 4 * 10
+        
       },
       // Skup 5
       {
-        'BRD': 3 * 10,
-        'CDF': 3 * 10,
-        'FGH': 3 * 10,
-        'JKL': 3 * 10,
-        'MNP': 3 * 10,
-        'RS': 2 * 10,
-        'SCR': 3 * 10,
-        'BOK': 3 * 10,
-        'DAL': 3 * 10
+       
       }
     ];
 
@@ -383,6 +342,7 @@
 
     let letters = [];
     let selectedLetters = [];
+    let longestWord = '';
 
     let score = 0;
     let gameOver = false;  // flag koji blokira igru kad se završi
@@ -407,9 +367,15 @@
       inputBox.value = '';
       score = 0; // resetuj skor pri novoj igri
 
-      while (letters.length < LETTERS_COUNT) {
-        letters.push(getRandomLetter());
-      }
+       // Pronađi najdužu reč u skupu
+  longestWord = '';
+  for (const word in allowedWords) {
+    if (word.length > longestWord.length) {
+      longestWord = word;
+    }
+  }
+
+      letters = [...chosenSet];
 
       letters.forEach((letter, index) => {
         const box = document.createElement('div');
@@ -514,6 +480,9 @@
       clearBtn.disabled = true;
       
       finalScoreEl.textContent = `Osvojili ste ${score} bodova.`;
+
+      // Dodajte ovu liniju za prikaz najduže reči
+  document.getElementById('longestWord').textContent = `Najduža riječ je ${longestWord}.`;
 
       // Prikaži modal
       resultModal.style.display = 'flex';
