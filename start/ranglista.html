@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chemission - Rang lista</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6a4c93;
+      --secondary: #ff6b35;
+      --light: #f8f9fa;
+      --dark: #212529;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--dark);
+      padding: 2rem 1rem;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 2rem;
+      font-size: 2rem;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+    
+    th, td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+    
+    th {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+    
+    tr:nth-child(even) {
+      background-color: rgba(106, 76, 147, 0.05);
+    }
+    
+    tr:hover {
+      background-color: rgba(106, 76, 147, 0.1);
+    }
+    
+    .delete-btn {
+      color: var(--secondary);
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    
+    .delete-btn:hover {
+      transform: scale(1.2);
+    }
+    
+    .back-btn {
+      display: inline-block;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin: 0 auto;
+    }
+    
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    .admin-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: transparent;
+      color: var(--secondary);
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .admin-btn:hover {
+      transform: scale(1.1) rotate(15deg);
+      color: var(--primary);
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.5rem;
+      }
+      
+      th, td {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .admin-btn {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Rang lista</h1>
+    
+    <table id="rankingTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Igrač</th>
+          <th>Bodovi</th>
+          <th id="deleteHeader" style="display:none;">Obriši</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dinamički popunjeno -->
+      </tbody>
+    </table>
+    
+    <a href="../index.html" class="back-btn">Nazad na početak</a>
+  </div>
+
+  <button class="admin-btn" id="adminBtn">🔒</button>
+
+  <script>
+    const adminBtn = document.getElementById('adminBtn');
+    const deleteHeader = document.getElementById('deleteHeader');
+    const rankingTable = document.getElementById('rankingTable').getElementsByTagName('tbody')[0];
+    const PASSWORD = "admin123";
+    let deleteMode = false;
+
+    function loadLeaderboard() {
+      rankingTable.innerHTML = '';
+      deleteHeader.style.display = deleteMode ? 'table-cell' : 'none';
+      
+      let leaderboard = JSON.parse(localStorage.getItem('rangLista')) || [];
+      leaderboard.sort((a, b) => b.rezultat - a.rezultat);
+      
+      leaderboard.forEach((player, index) => {
+        const row = rankingTable.insertRow();
+        
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${player.ime}</td>
+          <td>${player.rezultat}</td>
+        `;
+        
+        if (deleteMode) {
+          const deleteCell = row.insertCell();
+          deleteCell.innerHTML = '<span class="delete-btn" data-name="${player.ime}">🗑️</span>';
+        }
+      });
+      
+      // Add event listeners to delete buttons
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const playerName = e.target.getAttribute('data-name');
+          deletePlayer(playerName);
+        });
+      });
+    }
+    
+    function deletePlayer(name) {
+      let leaderboard = JSON.parse(localStorage.getItem('rangLista')) || [];
+      leaderboard = leaderboard.filter(player => player.ime !== name);
+      localStorage.setItem('rangLista', JSON.stringify(leaderboard));
+      loadLeaderboard();
+    }
+    
+    function toggleDeleteMode() {
+      if (!deleteMode) {
+        const password = prompt("Unesite administratorsku lozinku:");
+        if (password === PASSWORD) {
+          deleteMode = true;
+          adminBtn.textContent = '🔓';
+          adminBtn.style.color = 'var(--primary)';
+        } else {
+          alert("Pogrešna lozinka!");
+          return;
+        }
+      } else {
+        deleteMode = false;
+        adminBtn.textContent = '🔒';
+        adminBtn.style.color = 'var(--secondary)';
+      }
+      loadLeaderboard();
+    }
+    
+    adminBtn.addEventListener('click', toggleDeleteMode);
+    loadLeaderboard();
+  </script>
+</body>
+</html>

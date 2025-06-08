@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Hemijska Slagalica</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6a4c93;
+      --secondary: #ff6b35;
+      --light: #f8f9fa;
+      --dark: #212529;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--dark);
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 500px;
+      padding: 2rem;
+    }
+    
+    .trophy-link {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 2rem;
+      color: white;
+      transition: transform 0.3s;
+      text-decoration: none;
+      z-index: 100;
+    }
+    
+    .trophy-link:hover {
+      transform: scale(1.2) rotate(-10deg);
+    }
+    
+    .login-box {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      backdrop-filter: blur(5px);
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 1.2rem;
+      font-size: 1.3rem;
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      transition: all 0.3s;
+      text-align: center;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-clip: padding-box;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    
+    /* iOS specific stilovi */
+    @supports (-webkit-touch-callout: none) {
+      input[type="text"] {
+        font-size: 1.4rem;
+        padding: 1.3rem;
+        border-radius: 14px;
+        /*-webkit-appearance: none;*/
+      }
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(106, 76, 147, 0.3);
+    }
+    
+    .btn {
+      display: inline-block;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      padding: 1.3rem 2rem;
+      font-size: 1.3rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+      width: 100%;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      /*-webkit-appearance: none;*/
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.5rem;
+      }
+      
+      .login-box {
+        padding: 1.8rem;
+      }
+      
+      input[type="text"] {
+        font-size: 1.4rem;
+        padding: 1.3rem;
+      }
+      
+      .btn {
+        font-size: 1.4rem;
+        padding: 1.4rem;
+      }
+    }
+    
+    @media (max-width: 400px) {
+      input[type="text"] {
+        font-size: 1.5rem;
+        padding: 1.4rem;
+      }
+      
+      .btn {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="start/ranglista.html" class="trophy-link" title="Pogledaj rang listu">
+      🏆
+    </a>
+    
+    <div class="login-box">
+      <div class="form-group">
+        <input type="text" id="username" placeholder="Unesite ime" inputmode="text" enterkeyhint="go" />
+      </div>
+      <button class="btn" onclick="startGame()">Započni igru</button>
+    </div>
+  </div>
+
+  <script>
+    function startGame() {
+      const usernameInput = document.getElementById("username");
+      const username = usernameInput.value.trim();
+      
+      if (username === "") {
+        alert("Molimo unesite ime!");
+        return;
+      }
+
+      // Save username to session storage
+      sessionStorage.setItem('username', username);
+      
+      // Redirect to game menu
+      window.location.href = "start/igra.html";
+    }
+
+    // Allow submitting with Enter key
+    document.getElementById("username").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        startGame();
+      }
+    });
+    
+    // iOS virtual keyboard enter button enhancement
+    document.getElementById("username").addEventListener("keyup", function(e) {
+      if (e.keyCode === 13 || e.which === 13) {
+        startGame();
+      }
+    });
+  </script>
+</body>
+</html>

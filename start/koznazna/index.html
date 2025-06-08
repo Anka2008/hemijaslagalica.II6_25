@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ko zna zna - Hemijska Slagalica</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6a4c93 0%, #ff6b35 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+    
+    .quiz-container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      width: 700px;
+      max-width: 95%;
+      text-align: center;
+    }
+    
+    .question {
+      font-size: 26px;
+      margin-bottom: 25px;
+      color: #2d2d2d;
+    }
+    
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+    
+    .answer {
+      background: white;
+      padding: 18px;
+      border-radius: 10px;
+      border: 2px solid #ddd;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    
+    .answer:hover {
+      border-color: #6a4c93;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .answer.correct {
+      background: #4caf50;
+      color: white;
+      border-color: #4caf50;
+    }
+    
+    .answer.wrong {
+      background: #e63946;
+      color: white;
+      border-color: #e63946;
+    }
+    
+    #timer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 8px 14px;
+      border-radius: 10px;
+      z-index: 1000;
+    }
+    
+    #timer.critical {
+      background-color: #dc2626;
+      animation: pulse 0.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 99;
+    }
+    
+    .modal-content {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      width: 300px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: #6a4c93;
+    }
+    
+    .modal-content button {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
+      background: linear-gradient(45deg, #6a4c93, #ff6b35);
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(106, 76, 147, 0.4);
+    }
+    
+    .modal-content button:hover {
+      background: linear-gradient(45deg, #ff6b35, #6a4c93);
+      box-shadow: 0 6px 20px rgba(106, 76, 147, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    @media (max-width: 600px) {
+      .quiz-container {
+        padding: 15px;
+        width: 95%;
+      }
+      
+      .question {
+        font-size: 18px;
+        margin-bottom: 15px;
+      }
+      
+      .answers {
+        grid-template-columns: 1fr;
+      }
+      
+      .answer {
+        padding: 12px;
+        font-size: 16px;
+      }
+      
+      #timer {
+        font-size: 18px;
+        padding: 5px 10px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .question {
+        font-size: 16px;
+      }
+      
+      .answer {
+        padding: 10px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div class="question" id="question"></div>
+  <div class="answers" id="answers"></div>
+</div>
+
+<div id="timer">20</div>
+
+<div class="modal" id="resultModal">
+  <div class="modal-content">
+    <h2>Kraj igre!</h2>
+    <p id="finalScore"></p>
+    <button id="btnToStart">Nazad na meni</button>
+  </div>
+</div>
+
+<script>
+  const allQuestions = [
+    /*{q:"Proces otpuštanja elektrona i povećanja oksidacionog broja je",o:["oksidacija","redukcija","",""],c:0},
+  {q:"Proces primanja elektrona i smanjenja oksiddacionog broja je",o:["oksidacija","","","redukcija"],c:3},
+  {q:"Molekuli vode su povezani ..... vezama",o:["jonskim","vodonicnoim","kovalentnim","vodenim"],c:1},
+  {q:"U Ia grupi najjaču metalnu vezu ima",o:["H","K","Li","Na"],c:2},
+  {q:"Kako se naziva supstanca koja vezuje i zadržava vodu?",o:["","","","higroskopna"],c:3},
+  {q:"Zemnoalkalnim metalima nazivamo elmente",o:["","","IIa",""],c:2},
+  {q:"Oksidi i hidroksidi IIa grupe su",o:["bazni","","",""],c:0},
+  {q:"U IIa grupi odstupa",o:["","Be","",""],c:1},
+  {q:"Najniže Tt u IIa grupi ima",o:["","","Mg",""],c:2},
+  {q:"Najrasprostranjeniji element IIa grupe je",o:["","","","Ca"],c:3},
+  {q:"Prolazna tvrdoća vode je",o:["CaCl2","Ca(HCO3)2","CaSO4","CaCO3"],c:1},
+  {q:"Ko se u prirodi javlja u obliku kalcita i aragonita",o:["CaCO3","CaSO4","CaCl2","CaF2"],c:0},
+  {q:"Al2O3 je ",o:["bazan","amfoteran","amorfan","kisel"],c:1},
+  {q:"Dogube soli sumporne kiseline se nazivaju",o:["","","stipse",""],c:2},
+  {q:"Ugljenik ima ... alotropske modifikacije",o:["2","3","4","5"],c:3},
+  {q:"U prirodi se olovo javlja u vidu rude",o:["galenit","","",""],c:0},
+  {q:"",o:["","","",""],c:1},
+  {q:"",o:["","","",""],c:2},
+  {q:"",o:["","","",""],c:3},
+  {q:"",o:["","","",""],c:0},
+  
+
+
+  {q:"Formula kriolita je",o:["","","NaAl3F6",""],c:2},
+  {q:"Formula silvina je",o:["KCl","","",""],c:0},
+  {q:"Formula masne sode je",o:["","","","NaOH"],c:3},
+  {q:"Formula kamene sode je",o:["Na2CO3","","",""],c:0},
+  {q:"Formula magnezita je",o:["","MgCO3","",""],c:1},
+  {q:"Formula dolomita je",o:["","","MgCO3xCaCO3",""],c:2},
+  {q:"Formula karnalita je",o:["","","","MgCl2xKClx6H2O"],c:3},
+  {q:"Formula gipsa je",o:["CaSO4","","",""],c:0},
+  {q:"Formula borana je",o:["","BH3","",""],c:1},
+  {q:"Formula diborana je",o:["","","B2H6",""],c:2},
+  {q:"Formula fudbalera je",o:["C30","C40","C50","C60"],c:3},
+  {q:"Formula cijanida je",o:["HCN","","",""],c:0},
+  {q:"Formula kasiterita je",o:["","SnO2","",""],c:1},
+  {q:"Formula minijuma je",o:["","","Pb3O4",""],c:2},
+  {q:"Formula fosfina je",o:["","","","PH3"],c:3},
+  {q:"Formula  je",o:["","","",""],c:0},
+  {q:"Formula  je",o:["","","",""],c:1},
+  {q:"Formula  je",o:["","","",""],c:2},
+  {q:"Formula  je",o:["","","",""],c:3},
+  {q:"Formula  je",o:["","","",""],c:0},
+  {q:"Formula  je",o:["","","",""],c:1},
+  {q:"Formula  je",o:["","","",""],c:2},
+  {q:"Formula  je",o:["","","",""],c:3},
+  {q:"Formula  je",o:["","","",""],c:0},
+  {q:"Formula  je",o:["","","",""],c:1},
+  {q:"Formula  je",o:["","","",""],c:2},
+  {q:"Formula  je",o:["","","",""],c:3},
+  {q:"Formula  je",o:["","","",""],c:0},
+  {q:"Formula  je",o:["","","",""],c:1},
+  {q:"Formula  je",o:["","","",""],c:2},
+  {q:"Formula  je",o:["","","",""],c:3},*/
+  
+    {q:"Koji je hemijski simbol za natrijum?",o:["Na","N","Ni","Ne"],c:0},
+    {q:"Koja jedinica se koristi za količinu supstance?",o:["Mol","Gram","Litar","Joul"],c:0},
+    {q:"Koji gas se oslobađa pri fotosintezi?",o:["Azot","Kiseonik","Ugljen-dioksid","Helijum"],c:1},
+    {q:"Koja je pH vrednost neutralne supstance?",o:["7","0","14","10"],c:0},
+    {q:"Koji je hemijski simbol za ugljenik?",o:["C","U","Cu","Co"],c:0},
+    {q:"Kako se zove proces prelaska tečnog stanja u gas?",o:["Kondenzacija","Isparavanje","Sublimacija","Topljenje"],c:1},
+    {q:"Koji element ima simbol Fe?",o:["Fosfor","Željezo","Fluor","Fermijum"],c:1},
+    {q:"Koji je simbol za zlato?",o:["Ag","Au","Pt","Zn"],c:1},
+    {q:"Kako se zove hemijsko vezivanje atoma koje deli elektrone?",o:["Jonska veza","Kovalentna veza","Metalna veza","Vodonična veza"],c:1},
+    {q:"Koji je hemijski simbol za helijum?",o:["H","He","Ho","Hg"],c:1},
+    {q:"Koji je najlakši element?",o:["Helijum","Litijum","Vodonik","Azot"],c:2},
+    {q:"Koji gas je najzastupljeniji u atmosferi?",o:["Kiseonik","Azot","Ugljen-dioksid","Ozon"],c:1},
+    {q:"Koja je formula vode?",o:["H2O","CO2","O2","NaCl"],c:0},
+    {q:"Koji je hemijski simbol za srebro?",o:["Ag","Au","Si","Al"],c:0},
+    {q:"Koja kiselina se nalazi u želucu?",o:["Hlorovodonična","Sirćetna","Sumporna","Ugljena"],c:0},
+    {q:"Koja vrsta jedinjenja ima OH grupu?",o:["Alkoholi","Kiseline","Soli","Bazni oksidi"],c:0},
+    {q:"Koji je simbol za natrijum-hlorid?",o:["HCl","NaCl","KCl","CaCl2"],c:1},
+    {q:"Koja je oznaka za hemijsku reakciju sagorevanja?",o:["+ O2","- H2O","+ CO2","- O2"],c:0},
+    {q:"Koji je hemijski simbol za kalcijum?",o:["C","Ca","K","Cu"],c:1},
+    {q:"Koji je najteži gas?",o:["Helijum","Azot","Radon","Neon"],c:2},
+    {q:"Koja kiselina se nalazi u limunu?",o:["Mravlja","Sirćetna","Limunska","Mlečna"],c:2},
+    {q:"Koji je simbol za kalijum?",o:["K","Ka","Ki","Ko"],c:0},
+    {q:"Koji je simbol za aluminijum?",o:["Al","Au","Ag","Am"],c:0},
+    {q:"Šta je elektroliza?",o:["Proces rastvaranja","Proces razlaganja pomoću struje","Hemijsko vezivanje","Ubrzano hlađenje"],c:1},
+    {q:"Koji element ima simbol Pb?",o:["Platina","Olovo","Paladijum","Protaktinijum"],c:1},
+    {q:"Koja čestica ima negativan naelektrisanje?",o:["Proton","Neutron","Elektron","Atom"],c:2},
+    {q:"Kako se zove promena iz čvrstog direktno u gas?",o:["Isparavanje","Kondenzacija","Sublimacija","Topljenje"],c:2},
+    {q:"Koji je hemijski simbol za fosfor?",o:["F","P","Ph","Pt"],c:1}
+  ];
+
+  let questions = [];
+  let currentQuestion = 0;
+  let timer;
+  let timeLeft = 20;
+  let score = 0;
+  let gameEnded = false;
+
+  function startQuiz() {
+    gameEnded = false;
+    document.getElementById('resultModal').style.display = 'none';
+    questions = [...allQuestions].sort(() => 0.5 - Math.random()).slice(0, 15);
+    currentQuestion = 0;
+    score = 0;
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    if (gameEnded) return;
+    
+    clearInterval(timer);
+    const q = questions[currentQuestion];
+    document.getElementById('question').textContent = q.q;
+    const aDiv = document.getElementById('answers');
+    aDiv.innerHTML = '';
+    
+    q.o.forEach((op, i) => {
+      if (op === "") return; // Preskoči prazne odgovore
+      
+      const div = document.createElement('div');
+      div.className = 'answer';
+      div.textContent = op;
+      div.onclick = () => checkAnswer(div, i === q.c);
+      aDiv.appendChild(div);
+    });
+    
+    timeLeft = 20;
+    document.getElementById('timer').textContent = timeLeft;
+    if (timeLeft <= 5) {
+      document.getElementById('timer').classList.add('critical');
+    } else {
+      document.getElementById('timer').classList.remove('critical');
+    }
+    
+    timer = setInterval(() => {
+      timeLeft--;
+      document.getElementById('timer').textContent = timeLeft;
+      
+      if (timeLeft <= 5) {
+        document.getElementById('timer').classList.add('critical');
+      }
+      
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        score -= 5;
+        nextQuestion();
+      }
+    }, 1000);
+  }
+
+  function checkAnswer(element, correct) {
+    if (gameEnded) return;
+    
+    clearInterval(timer);
+    document.querySelectorAll('.answer').forEach(b => b.onclick = null);
+    
+    if (correct) {
+      element.classList.add('correct');
+      if (timeLeft > 15) score += 7;
+      else if (timeLeft > 10) score += 5;
+      else if (timeLeft > 5) score += 3;
+      else score += 2;
+    } else {
+      element.classList.add('wrong');
+      document.querySelectorAll('.answer')[questions[currentQuestion].c].classList.add('correct');
+      score -= 3;
+    }
+    
+    setTimeout(nextQuestion, 1000);
+  }
+
+  function nextQuestion() {
+    currentQuestion++;
+    if (currentQuestion < questions.length) {
+      loadQuestion();
+    } else {
+      endGame();
+    }
+  }
+
+  function endGame() {
+    gameEnded = true;
+    clearInterval(timer);
+    document.getElementById('question').textContent = "";
+    document.getElementById('answers').innerHTML = '';
+    document.getElementById('timer').textContent = '';
+    document.getElementById('finalScore').textContent = `Osvojili ste ${score} bodova.`;
+    document.getElementById('resultModal').style.display = 'flex';
+
+    // Sačuvaj rezultat
+    localStorage.setItem('koznaznaScore', score);
+    localStorage.setItem('koznaznaPlayed', 'true');
+  }
+
+  document.getElementById('btnToStart').onclick = function() {
+    window.location.href = '../igra.html';
+  };
+
+  startQuiz();
+</script>
+
+</body>
+</html>

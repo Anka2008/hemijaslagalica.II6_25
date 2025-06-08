@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hemijski Skočko</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes flipIn {
+            0% { transform: rotateX(90deg); opacity: 0; }
+            100% { transform: rotateX(0deg); opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        .pulse {
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        .flip-in {
+            animation: flipIn 0.6s ease-out;
+        }
+        
+        .element-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .element-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .timer-pulse {
+            animation: pulse 1s infinite;
+        }
+        
+        .guess-slot {
+            transition: all 0.2s ease;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .element-btn {
+                padding: 0.5rem !important;
+                font-size: 1rem !important;
+            }
+            
+            .guess-slot {
+                height: 3.5rem !important;
+                font-size: 1.5rem !important;
+            }
+            
+            #timer {
+                font-size: 1.2rem !important;
+                padding: 0.5rem 1rem !important;
+            }
+            
+            #submitBtn {
+                padding: 0.75rem 1.5rem !important;
+                font-size: 1rem !important;
+            }
+            
+            .container-class {
+                padding: 1rem !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-green-400 to-yellow-300 flex flex-col items-center justify-start py-4 px-2">
+    <div class="w-full max-w-md mx-auto container-class">
+      <div class="flex justify-between items-center mb-4">
+        <div></div>
+        <div class="flex items-center space-x-2">
+            <span id="timer" class="text-xl font-bold bg-white rounded-full px-3 py-1 shadow-md">100</span>
+        </div>
+      </div>
+        
+      <div class="bg-white bg-opacity-80 rounded-xl shadow-xl p-4 mb-4">
+          <div class="grid grid-cols-4 gap-2 mb-3" id="currentGuess"></div>
+          
+          <div class="flex justify-center mb-3">
+              <button id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                  Pošalji
+              </button>
+          </div>
+          
+          <div class="grid grid-cols-6 gap-1 mb-3">
+              <button class="element-btn bg-green-100 hover:bg-green-200 text-green-800 font-bold py-2 px-1 rounded-lg transition-all" data-element="H">H</button>
+              <button class="element-btn bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-2 px-1 rounded-lg transition-all" data-element="O">O</button>
+              <button class="element-btn bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold py-2 px-1 rounded-lg transition-all" data-element="N">N</button>
+              <button class="element-btn bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2 px-1 rounded-lg transition-all" data-element="C">C</button>
+              <button class="element-btn bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-bold py-2 px-1 rounded-lg transition-all" data-element="Cl">Cl</button>
+              <button class="element-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold py-2 px-1 rounded-lg transition-all" data-element="Na">Na</button>
+          </div>
+      </div>
+      
+      <div class="bg-white bg-opacity-80 rounded-xl shadow-xl p-4">
+          <h2 class="text-lg font-semibold mb-3 text-gray-800">Pokušaji (<span id="attemptsLeft">6</span>)</h2>
+          
+          <div id="guessesBoard" class="space-y-2">
+              <div class="text-center py-6 text-gray-500" id="emptyState">
+                  <i class="fas fa-flask text-3xl mb-1"></i>
+                  <p class="text-sm">Izaberite 4 hemijska simbola</p>
+              </div>
+          </div>
+      </div>
+    </div>
+    
+    <!-- Modal for game over -->
+    <div id="gameOverModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 px-2">
+        <div class="bg-white rounded-xl p-4 w-full max-w-sm mx-4 transform transition-all fade-in">
+            <h2 class="text-xl font-bold mb-3" id="modalTitle">Rezultat</h2>
+            <p class="mb-3 text-sm" id="modalMessage"></p>
+            <div class="flex justify-center">
+                <button id="modalNewGameBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-all text-sm">
+                    Nova igra
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state and logic remains the same
+        // Only added mobile touch optimizations
+        document.addEventListener('touchstart', function() {}, {passive: true});
+        // Game state
+        const elements = ['H', 'O', 'N', 'C', 'Cl', 'Na'];
+        let secretCode = [];
+        let currentGuess = Array(4).fill(null); // Initialize with 4 null values
+        let attemptsLeft = 6;
+        let timer = 100;
+        let timerInterval;
+        let gameActive = false;
+        let score = 0;
+        
+        // DOM elements
+        const currentGuessEl = document.getElementById('currentGuess');
+        const guessesBoardEl = document.getElementById('guessesBoard');
+        const submitBtn = document.getElementById('submitBtn');
+        const attemptsLeftEl = document.getElementById('attemptsLeft');
+        const timerEl = document.getElementById('timer');
+        const emptyStateEl = document.getElementById('emptyState');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalNewGameBtn = document.getElementById('modalNewGameBtn');
+        
+        // Element buttons
+        const elementButtons = document.querySelectorAll('.element-btn');
+        
+        // Initialize game
+        function initGame() {
+            // Generate secret code
+            secretCode = [];
+            for (let i = 0; i < 4; i++) {
+                const randomIndex = Math.floor(Math.random() * elements.length);
+                secretCode.push(elements[randomIndex]);
+            }
+            
+            // Reset game state
+            currentGuess = Array(4).fill(null);
+            attemptsLeft = 6;
+            timer = 100;
+            gameActive = true;
+            
+            // Update UI
+            updateCurrentGuessDisplay();
+            updateAttemptsDisplay();
+            updateTimerDisplay();
+            guessesBoardEl.innerHTML = '';
+            emptyStateEl.classList.remove('hidden');
+            submitBtn.disabled = true;
+            
+            // Start timer
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+        
+        // Update current guess display
+        function updateCurrentGuessDisplay() {
+            currentGuessEl.innerHTML = '';
+
+            for (let i = 0; i < 4; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'h-16 bg-gray-100 rounded-lg flex items-center justify-center text-2xl font-bold border-2 border-gray-200 guess-slot cursor-pointer';
+                slot.dataset.index = i;
+        
+                if (currentGuess[i]) {
+                    slot.textContent = currentGuess[i];
+                    slot.classList.add('bg-white', 'shadow-md', 'flip-in');
+            
+                    // Add color based on element
+                    switch(currentGuess[i]) {
+                        case 'H': slot.classList.add('bg-green-100', 'text-green-800'); break;
+                        case 'O': slot.classList.add('bg-blue-100', 'text-blue-800'); break;
+                        case 'N': slot.classList.add('bg-purple-100', 'text-purple-800'); break;
+                        case 'C': slot.classList.add('bg-red-100', 'text-red-800'); break;
+                        case 'Cl': slot.classList.add('bg-yellow-100', 'text-yellow-800'); break;
+                        case 'Na': slot.classList.add('bg-indigo-100', 'text-indigo-800'); break;
+                    }
+                }
+
+                // Add click event to clear this slot
+                slot.addEventListener('click', () => {
+                    if (!gameActive) return;
+                    currentGuess[i] = null;
+                    updateCurrentGuessDisplay();
+                });
+
+                currentGuessEl.appendChild(slot);
+            }
+    
+            // Enable submit button if guess is complete
+            const completeGuess = currentGuess.every(el => el !== null);
+            submitBtn.disabled = !completeGuess;
+        }
+        
+        // Update attempts display
+        function updateAttemptsDisplay() {
+            attemptsLeftEl.textContent = attemptsLeft;
+        }
+        
+        // Update timer
+        function updateTimer() {
+            if (!gameActive) return;
+            
+            timer--;
+            updateTimerDisplay();
+            
+            if (timer <= 0) {
+                clearInterval(timerInterval);
+                gameActive = false;
+                showGameOver(false, true);
+            }
+        }
+        
+        // Update timer display
+        function updateTimerDisplay() {
+            timerEl.textContent = timer;
+            
+            // Change color based on remaining time
+            if (timer <= 20) {
+                timerEl.classList.remove('bg-white');
+                timerEl.classList.add('bg-red-500', 'text-white', 'timer-pulse');
+            } else if (timer <= 50) {
+                timerEl.classList.remove('bg-red-500', 'text-white', 'timer-pulse');
+                timerEl.classList.add('bg-yellow-300');
+            } else {
+                timerEl.classList.remove('bg-yellow-300', 'bg-red-500', 'text-white', 'timer-pulse');
+                timerEl.classList.add('bg-white');
+            }
+        }
+        
+        // Submit guess
+        function submitGuess() {
+            if (!gameActive || currentGuess.some(el => el === null)) return;
+            
+            // Decrement attempts
+            attemptsLeft--;
+            updateAttemptsDisplay();
+            
+            // Check if guess is correct
+            const isCorrect = checkGuess();
+            
+            // Add guess to board
+            addGuessToBoard(isCorrect);
+            
+            // Clear current guess
+            currentGuess = Array(4).fill(null);
+            updateCurrentGuessDisplay();
+            
+            // Check game over conditions
+            if (isCorrect) {
+                clearInterval(timerInterval);
+                gameActive = false;
+                showGameOver(true, false);
+            } else if (attemptsLeft <= 0) {
+                clearInterval(timerInterval);
+                gameActive = false;
+                showGameOver(false, false);
+            }
+        }
+        
+        // Check guess against secret code
+        function checkGuess() {
+            for (let i = 0; i < 4; i++) {
+                if (currentGuess[i] !== secretCode[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        // Get feedback for current guess
+        function getFeedback() {
+            let correct = 0;
+            let misplaced = 0;
+            
+            // Create copies to avoid modifying original arrays
+            const secretCopy = [...secretCode];
+            const guessCopy = [...currentGuess];
+            
+            // First pass: find correct positions
+            for (let i = 0; i < 4; i++) {
+                if (guessCopy[i] === secretCopy[i]) {
+                    correct++;
+                    // Mark as processed
+                    secretCopy[i] = null;
+                    guessCopy[i] = null;
+                }
+            }
+            
+            // Second pass: find misplaced elements
+            for (let i = 0; i < 4; i++) {
+                if (guessCopy[i] !== null) {
+                    const index = secretCopy.indexOf(guessCopy[i]);
+                    if (index !== -1) {
+                        misplaced++;
+                        // Mark as processed
+                        secretCopy[index] = null;
+                    }
+                }
+            }
+            
+            return { correct, misplaced };
+        }
+
+        // Add guess to board with feedback
+        function addGuessToBoard(isCorrect) {
+            emptyStateEl.classList.add('hidden');
+            
+            const feedback = getFeedback();
+            
+            const guessRow = document.createElement('div');
+            guessRow.className = 'grid grid-cols-4 gap-2 mb-2';
+            
+            // Create elements for the guess
+            for (let i = 0; i < 4; i++) {
+                const element = document.createElement('div');
+                element.className = `h-12 rounded-lg flex items-center justify-center text-xl font-bold border-2 border-gray-200 fade-in`;
+                element.textContent = currentGuess[i];
+                
+                // Add color based on element
+                switch(currentGuess[i]) {
+                    case 'H': element.classList.add('bg-green-100', 'text-green-800'); break;
+                    case 'O': element.classList.add('bg-blue-100', 'text-blue-800'); break;
+                    case 'N': element.classList.add('bg-purple-100', 'text-purple-800'); break;
+                    case 'C': element.classList.add('bg-red-100', 'text-red-800'); break;
+                    case 'Cl': element.classList.add('bg-yellow-100', 'text-yellow-800'); break;
+                    case 'Na': element.classList.add('bg-indigo-100', 'text-indigo-800'); break;
+                }
+                
+                guessRow.appendChild(element);
+            }
+            
+            // Create feedback circles
+            const feedbackRow = document.createElement('div');
+            feedbackRow.className = 'grid grid-cols-4 gap-2 mb-4';
+            
+            // Add correct feedback (red dots)
+            for (let i = 0; i < feedback.correct; i++) {
+                const feedbackCircle = document.createElement('div');
+                feedbackCircle.className = 'h-4 w-4 rounded-full bg-red-500 fade-in';
+                feedbackRow.appendChild(feedbackCircle);
+            }
+            
+            // Add misplaced feedback (yellow dots)
+            for (let i = 0; i < feedback.misplaced; i++) {
+                const feedbackCircle = document.createElement('div');
+                feedbackCircle.className = 'h-4 w-4 rounded-full bg-yellow-400 fade-in';
+                feedbackRow.appendChild(feedbackCircle);
+            }
+            
+            // Add no match feedback (gray dots)
+            const remainingDots = 4 - feedback.correct - feedback.misplaced;
+            for (let i = 0; i < remainingDots; i++) {
+                const feedbackCircle = document.createElement('div');
+                feedbackCircle.className = 'h-4 w-4 rounded-full bg-gray-300 fade-in';
+                feedbackRow.appendChild(feedbackCircle);
+            }
+            
+            // Add to board
+            const container = document.createElement('div');
+            container.className = 'bg-white bg-opacity-70 rounded-lg p-3 flip-in';
+            container.appendChild(guessRow);
+            container.appendChild(feedbackRow);
+            
+            guessesBoardEl.insertBefore(container, guessesBoardEl.firstChild);
+            
+            // Add celebration if correct
+            if (isCorrect) {
+                container.classList.add('bg-yellow-100', 'border-2', 'border-yellow-400', 'pulse');
+            }
+        }
+        
+        // Show game over modal
+        function showGameOver(won, timeOut) {
+            let message = '';
+
+            if (won) {
+                score = (timer * 2) + (attemptsLeft * 20);
+                message = `Čestitamo! Pogodili ste tačnu kombinaciju. Osvojili ste ${score} bodova.`;
+            } else if (timeOut) {
+                score = 0;
+                message = `Isteklo je vrijeme! Niste pogodili kombinaciju. Osvojeni bodovi: ${score}`;
+            } else {
+                score = 0;
+                message = `Iskoristili ste sve pokušaje! Niste pogodili kombinaciju. Osvojeni bodovi: ${score}`;
+            }
+
+            modalTitle.textContent = 'Kraj igre';
+            modalMessage.textContent = message;
+            gameOverModal.classList.remove('hidden');
+
+            localStorage.setItem('skockoScore', score);
+            localStorage.setItem('skockoPlayed', 'true');
+
+            modalNewGameBtn.onclick = () => {
+                window.location.href = '../igra.html';
+            };
+        }
+        
+        // Event listeners
+        elementButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (!gameActive) return;
+                
+                const element = button.getAttribute('data-element');
+                
+                // Find the first empty slot (null)
+                const emptyIndex = currentGuess.indexOf(null);
+                if (emptyIndex !== -1) {
+                    currentGuess[emptyIndex] = element;
+                    updateCurrentGuessDisplay();
+                    
+                    // Add pulse animation to the button
+                    button.classList.add('pulse');
+                    setTimeout(() => {
+                        button.classList.remove('pulse');
+                    }, 500);
+                }
+            });
+        });
+        
+        submitBtn.addEventListener('click', submitGuess);
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (!gameActive) return;
+            
+            const key = e.key.toUpperCase();
+            
+            // Check for backspace
+            if (e.key === 'Backspace') {
+                // Find the last non-null element
+                for (let i = currentGuess.length - 1; i >= 0; i--) {
+                    if (currentGuess[i] !== null) {
+                        currentGuess[i] = null;
+                        updateCurrentGuessDisplay();
+                        return;
+                    }
+                }
+                return;
+            }
+            
+            // Check for enter
+            if (e.key === 'Enter' && !currentGuess.includes(null)) {
+                submitGuess();
+                return;
+            }
+            
+            // Check for valid element keys
+            if (currentGuess.includes(null)) {
+                if (key === 'L' && !currentGuess.includes('Cl')) {
+                    const emptyIndex = currentGuess.indexOf(null);
+                    currentGuess[emptyIndex] = 'Cl';
+                    updateCurrentGuessDisplay();
+                } else if (key === 'A' && !currentGuess.includes('Na')) {
+                    const emptyIndex = currentGuess.indexOf(null);
+                    currentGuess[emptyIndex] = 'Na';
+                    updateCurrentGuessDisplay();
+                } else if (elements.includes(key) && !currentGuess.includes(key)) {
+                    const emptyIndex = currentGuess.indexOf(null);
+                    currentGuess[emptyIndex] = key;
+                    updateCurrentGuessDisplay();
+                }
+            }
+        });
+        
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Start Meni - Igra Hemijska Slagalica</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6a4c93 0%, #ff6b35 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    #start-meni {
+      width: 100%;
+      max-width: 452px;
+      padding: 30px 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn {
+      flex: 1;
+      min-width: 200px;
+      height: 70px;
+      background-color: white;
+      color: #333;
+      font-size: 22px;
+      border: 2px solid #ddd;
+      border-radius: 15px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+    .btn:hover:not(:disabled) {
+      border-color: #6a4c93;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      background-color: #ddd;
+    }
+    .btn:disabled {
+      background-color: #ccc;
+      border-color: #aaa;
+      color: #666;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .rect {
+      width: 70px;
+      height: 70px;
+      background-color: white;
+      border: 2px solid #ddd;
+      border-radius: 15px;
+      color: #333;
+      font-size: 22px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+    }
+    #reset-btn {
+      margin-top: 30px;
+      padding: 18px 0;
+      font-size: 22px;
+      font-weight: 700;
+      width: 100%;
+      border-radius: 25px; /* Vraćen originalni border-radius */
+      border: none;
+      background: linear-gradient(45deg, #6a4c93, #ff6b35);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.6);
+      transition: all 0.3s ease;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    #reset-btn:hover {
+      background: linear-gradient(45deg, #ff6b35, #6a4c93);
+      box-shadow: 0 8px 25px rgba(106, 76, 147, 0.7);
+      transform: translateY(-3px) scale(1.05);
+    }
+
+    #trophy-link {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 36px;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+      z-index: 10;
+    }
+
+    #trophy-link:hover {
+      transform: scale(1.2) rotate(-10deg);
+    }
+
+    /* Responsivni stilovi */
+    @media (max-width: 480px) {
+      #start-meni {
+        padding: 20px 15px;
+      }
+      .btn {
+        height: 60px;
+        font-size: 18px;
+        min-width: 150px;
+      }
+      .rect {
+        width: 60px;
+        height: 60px;
+        font-size: 18px;
+      }
+      #reset-btn {
+        padding: 16px 0;
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section id="start-meni">
+    <a href="ranglista.html" id="trophy-link" title="Pogledaj rang listu">
+      🏆
+    </a>
+    <div class="button-group">
+      <div class="button-row">
+        <button class="btn" data-game="slagalica">Slagalica</button>
+        <div class="rect">?</div>
+      </div>
+      <div class="button-row">
+        <button class="btn" data-game="spojnice">Spojnice</button>
+        <div class="rect">?</div>
+      </div>
+      <div class="button-row">
+        <button class="btn" data-game="skocko">Skočko</button>
+        <div class="rect">?</div>
+      </div>
+      <div class="button-row">
+        <button class="btn" data-game="koznazna">Ko zna zna</button>
+        <div class="rect">?</div>
+      </div>
+      <div class="button-row">
+        <button class="btn" data-game="asocijacije">Asocijacije</button>
+        <div class="rect">?</div>
+      </div>
+    </div>
+
+    <div id="player-info" style="
+      margin: 30px 30px -10px 40px;
+      font-family: Arial, sans-serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 20px;
+      color: #6a4c93;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    ">      
+      <span id="displayName"> </span>
+      <span> </span><span id="totalScore">0</span>
+    </div>
+
+    <button id="reset-btn">Nova igra</button>
+  </section>
+
+  <script>
+    const buttons = document.querySelectorAll('.btn');
+    const rects = document.querySelectorAll('.rect');
+    const resetBtn = document.getElementById('reset-btn');
+
+    function checkAllGamesCompleted() {
+      let allCompleted = true;
+      buttons.forEach(btn => {
+        if (!localStorage.getItem(btn.dataset.game + 'Score')) {
+          allCompleted = false;
+        }
+      });
+      return allCompleted;
+    }
+
+    function updatePlayerInfo() {
+      const playerName = sessionStorage.getItem('username') || 'goste';
+      document.getElementById('displayName').textContent = playerName;
+
+      const games = ['slagalica', 'mojbroj', 'spojnice', 'skocko', 'koznazna', 'asocijacije'];
+      let totalScore = 0;
+
+      games.forEach(game => {
+        const score = localStorage.getItem(game + 'Score');
+        if (score !== null) {
+          totalScore += Number(score);
+        }
+      });
+
+      document.getElementById('totalScore').textContent = totalScore;
+      
+      // Proveri da li su sve igre završene
+      if (checkAllGamesCompleted()) {
+        upisiURangListu();
+        setTimeout(() => {
+          window.location.href = 'ranglista.html';
+        }, 1000);
+      }
+    }
+
+    function updateButtons() {
+      buttons.forEach((btn, i) => {
+        const gameKey = btn.dataset.game + 'Score';
+        const score = localStorage.getItem(gameKey);
+        const rect = rects[i];
+
+        if (score !== null) {
+          rect.textContent = score;
+          btn.disabled = true;
+        } else {
+          rect.textContent = '?';
+          btn.disabled = false;
+        }
+      });
+      
+      // Proveri da li su sve igre završene
+      if (checkAllGamesCompleted()) {
+        upisiURangListu();
+        setTimeout(() => {
+          window.location.href = 'ranglista.html';
+        }, 1000);
+      }
+    }
+
+    function upisiURangListu() {
+      const playerName = sessionStorage.getItem('username') || 'goste';
+      const games = ['slagalica', 'mojbroj', 'spojnice', 'skocko', 'koznazna', 'asocijacije'];
+      let totalScore = 0;
+
+      games.forEach(game => {
+        const score = localStorage.getItem(game + 'Score');
+        if (score !== null) {
+          totalScore += Number(score);
+        }
+      });
+
+      let rankingData = JSON.parse(localStorage.getItem('rangLista')) || [];
+      rankingData.push({ ime: playerName, rezultat: totalScore });
+      localStorage.setItem('rangLista', JSON.stringify(rankingData));
+    }
+
+    // pozovi odmah oba update-a
+    updatePlayerInfo();
+    updateButtons();
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        if (button.disabled) return;
+        const gameName = button.dataset.game;
+        window.location.href = `${gameName}/index.html`;
+      });
+    });
+
+    resetBtn.addEventListener('click', () => {
+      // prvo upiši u rang listu ako ima bodova
+      const playerName = sessionStorage.getItem('username') || 'goste';
+      const games = ['slagalica', 'mojbroj', 'spojnice', 'skocko', 'koznazna', 'asocijacije'];
+      let totalScore = 0;
+
+      games.forEach(game => {
+        const score = localStorage.getItem(game + 'Score');
+        if (score !== null) {
+          totalScore += Number(score);
+        }
+      });
+
+      if (totalScore > 0) {
+        let rankingData = JSON.parse(localStorage.getItem('rangLista')) || [];
+        rankingData.push({ ime: playerName, rezultat: totalScore });
+        localStorage.setItem('rangLista', JSON.stringify(rankingData));
+      }
+
+      // obrisi bodove
+      buttons.forEach(btn => {
+        localStorage.removeItem(btn.dataset.game + 'Score');
+      });
+
+      updateButtons();
+      updatePlayerInfo();
+
+      // preusmjeri na index.html foldera prije
+      window.location.href = '../index.html';
+    });
+  </script>
+</body>
+</html>

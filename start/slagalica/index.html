@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Slagalica</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@800&display=swap" rel="stylesheet" />
+  <style>
+    body { 
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #6a4c93 0%, #ff6b35 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: white;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 40px 20px 40px 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 5px;
+      justify-items: center;
+    }
+
+    .letter-box {
+      width: 50px;
+      height: 50px;
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .letter-box:hover {
+      border-color: #6a4c93;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .letter-box.selected {
+      background: #6a4c93;
+      color: white;
+      border-color: #6a4c93;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 15px; 
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 430px;
+      flex-wrap: nowrap;
+    }
+
+    .word-input {
+      flex-grow: 1;
+      flex-shrink: 1;
+      min-width: 0;
+      padding: 15px 20px;
+      border: 2px solid #ddd;
+      border-radius: 35px;
+      font-size: 18px;
+      outline: none;
+      transition: border-color 0.2s ease;
+      color: #333;
+      background: #fff;
+    }
+
+    .word-input:focus {
+      border-color: #6a4c93;
+    }
+
+    .word-input::placeholder {
+      color: #999;
+      font-style: italic;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      width: 55px;
+      height: 55px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.1);
+    }
+
+    .clear-btn {
+      background: #ff4757;
+      color: white;
+    }
+
+    .clear-btn:hover {
+      background: #ff3742;
+    }
+
+    .submit-btn {
+      background: #2ed573;
+      color: white;
+    }
+
+    .submit-btn:hover {
+      background: #1dd65a;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; 
+      left: 0;
+      width: 100%; 
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;               /* sakriven po početku */
+      justify-content: center;
+      align-items: center;
+      z-index: 99;
+    }
+
+    .modal-content {
+      background: #f1faee;
+       color: #000000;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      width: 300px;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+    }
+
+    .modal-content button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #457b9d;
+      color: #ffffff;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .modal-content button:hover {
+      background: #1d3557;
+    }
+
+    #timer {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 8px 14px;
+      border-radius: 10px;
+      z-index: 1000;
+    }
+
+    #timer.critical {
+      background-color: #dc2626;
+      animation: pulse 0.5s infinite;
+    }
+
+    /* Responsive design */
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+        width: 95%;
+      }
+      
+      .letter-box {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+      }
+      
+      .word-input {
+        padding: 10px 15px;
+        font-size: 14px;
+      }
+      
+      .btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+      
+      #timer {
+        font-size: 18px;
+        padding: 5px 10px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .letter-box {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- GRID SA SLOVIMA -->
+    <div class="grid" id="letterGrid">
+      <!-- Slova će se generisati preko JS -->
+    </div>
+
+    <!-- INPUT I DUGMAD -->
+    <div class="input-area">
+      <input type="text" class="word-input" id="inputBox" placeholder="Unesite riječ" autocomplete="off" />
+      <div class="action-buttons">
+        <button class="btn clear-btn" id="clearBtn" title="Obriši">✕</button>
+        <button class="btn submit-btn" id="submitBtn" title="Potvrdi">✓</button>
+      </div>
+    </div>
+    
+    <!-- Modal za rezultat -->
+    <div class="modal" id="resultModal">
+      <div class="modal-content">
+        <h2>Kraj igre!</h2>
+        <p id="finalScore"></p>
+        <button id="btnToStart">Nazad na meni</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="timer">90</div>
+
+  <script>
+    const letterGrid = document.getElementById('letterGrid');
+    const inputBox = document.getElementById('inputBox');
+    const clearBtn = document.getElementById('clearBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const resultModal = document.getElementById('resultModal');
+    const finalScoreEl = document.getElementById('finalScore');
+    const btnToStart = document.getElementById('btnToStart');
+
+    const LETTERS_COUNT = 14;
+
+    const LETTER_SETS = [
+      ['A','T','O','M','N','I','R','E','K','C','U','S','P','B'],  // Skup 0
+      ['D','L','J','V','Z','Č','Š','Ć','Đ','F','H','G','Q','W'],  // Skup 1
+      ['A','E','I','O','U','S','M','N','T','L','R','K','P','B'],  // Skup 2
+      ['C','R','A','S','E','P','U','K','I','N','O','M','T','L'],  // Skup 3
+      ['S','P','A','T','O','K','I','N','R','M','U','E','B','L'],  // Skup 4
+      ['B','C','D','F','G','H','J','K','L','M','N','P','R','S']   // Skup 5
+    ];
+
+    // Za svaki skup slova dodeljujemo i odgovarajući objekat sa rečima:
+    const ALLOWED_WORDS_SETS = [
+      // Skup 0
+      {
+        'ATOM': 4 * 10,
+        'ION': 3 * 10,
+        'UREA': 4 * 10,
+        'NEON': 4 * 10,
+        'BOR': 3 * 10,
+        'CINK': 4 * 10,
+        'KAP': 3 * 10,
+        'SUMA': 4 * 10,
+        'ATOMSKI': 7 * 10,
+        'KATION': 6 * 10,
+        'REAKCIJA': 8 * 10,
+        'SUMPOR': 6 * 10
+      },
+      // Skup 1
+      {
+        'DAN': 3 * 10,
+        'LJUBAV': 6 * 10,
+        'VODA': 4 * 10,
+        'ZRAK': 3 * 10,
+        'ŠUM': 3 * 10,
+        'ĆEŠALJ': 6 * 10,
+        'ĐAK': 3 * 10,
+        'FENG': 4 * 10,
+        'HEROJ': 5 * 10,
+        'GRAF': 4 * 10
+      },
+      // Skup 2
+      {
+        'AJMO': 4 * 10,
+        'EKO': 3 * 10,
+        'ISO': 3 * 10,
+        'UMAK': 4 * 10,
+        'SUM': 3 * 10,
+        'MINA': 4 * 10,
+        'TON': 3 * 10,
+        'LIK': 3 * 10,
+        'RIBA': 4 * 10,
+        'KUPA': 4 * 10,
+        'PUMA': 4 * 10,
+        'BATA': 4 * 10
+      },
+      // Skup 3
+      {
+        'CRNA': 4 * 10,
+        'RASPORED': 8 * 10,
+        'ASEP': 4 * 10,
+        'PUK': 3 * 10,
+        'INK': 3 * 10,
+        'ON': 2 * 10,
+        'MOT': 3 * 10,
+        'TALAS': 5 * 10,
+        'LOKAL': 5 * 10
+      },
+      // Skup 4
+      {
+        'SPAT': 4 * 10,
+        'TOK': 3 * 10,
+        'INAR': 4 * 10,
+        'RUM': 3 * 10,
+        'UBE': 3 * 10,
+        'BLE': 3 * 10,
+        'SILA': 4 * 10,
+        'MALA': 4 * 10,
+        'LAMA': 4 * 10
+      },
+      // Skup 5
+      {
+        'BRD': 3 * 10,
+        'CDF': 3 * 10,
+        'FGH': 3 * 10,
+        'JKL': 3 * 10,
+        'MNP': 3 * 10,
+        'RS': 2 * 10,
+        'SCR': 3 * 10,
+        'BOK': 3 * 10,
+        'DAL': 3 * 10
+      }
+    ];
+
+    let chosenSetIndex = 0;
+    let chosenSet = [];
+    let allowedWords = {};
+
+    let letters = [];
+    let selectedLetters = [];
+
+    let score = 0;
+    let gameOver = false;  // flag koji blokira igru kad se završi
+
+    function getRandomLetter() {
+      return chosenSet[Math.floor(Math.random() * chosenSet.length)];
+    }
+
+    function chooseRandomSet() {
+      chosenSetIndex = Math.floor(Math.random() * LETTER_SETS.length);
+      chosenSet = LETTER_SETS[chosenSetIndex];
+      allowedWords = ALLOWED_WORDS_SETS[chosenSetIndex];
+    }
+
+    function generateLetters() {
+      if(gameOver) return; // ne dozvoli generisanje ako je igra završena
+
+      chooseRandomSet();
+      letters = [];
+      selectedLetters = [];
+      letterGrid.innerHTML = '';
+      inputBox.value = '';
+      score = 0; // resetuj skor pri novoj igri
+
+      while (letters.length < LETTERS_COUNT) {
+        letters.push(getRandomLetter());
+      }
+
+      letters.forEach((letter, index) => {
+        const box = document.createElement('div');
+        box.classList.add('letter-box');
+        box.textContent = letter;
+        box.dataset.index = index;
+        box.dataset.letter = letter;
+        letterGrid.appendChild(box);
+      });
+
+      addTileListeners();
+      inputBox.disabled = false;
+      submitBtn.disabled = false;
+      clearBtn.disabled = false;
+    }
+
+    function addTileListeners() {
+      const letterTiles = document.querySelectorAll('.letter-box');
+
+      letterTiles.forEach(tile => {
+        tile.addEventListener('click', function() {
+          if(gameOver) return; // blokada klika ako je igra završena
+
+          const letter = this.dataset.letter;
+
+          if (this.classList.contains('selected')) {
+            this.classList.remove('selected');
+            let removed = false;
+            selectedLetters = selectedLetters.filter(l => {
+              if (l === letter && !removed) {
+                removed = true;
+                return false;
+              }
+              return true;
+            });
+          } else {
+            this.classList.add('selected');
+            selectedLetters.push(letter);
+          }
+
+          inputBox.value = selectedLetters.join('');
+        });
+      });
+    }
+
+    // Dugme Clear - briše selekciju
+    clearBtn.addEventListener('click', () => {
+      if(gameOver) return;
+
+      selectedLetters = [];
+      inputBox.value = '';
+      document.querySelectorAll('.letter-box.selected').forEach(el => el.classList.remove('selected'));
+    });
+
+    // Dugme Submit - proverava reč i računa poene
+    submitBtn.onclick = function() {
+      if(gameOver) return;
+
+      const submittedWord = inputBox.value.trim().toUpperCase();
+      if (submittedWord === '') return;
+
+      if (allowedWords[submittedWord]) {
+        score += allowedWords[submittedWord];
+        endGame();
+      } else {
+        alert('Riječ nije dozvoljena!');
+      }
+    }
+
+    // Tajmer
+    let timeLeft = 90;
+    const timerEl = document.getElementById('timer');
+    let timerInterval;
+
+    function updateTimer() {
+      timerEl.textContent = timeLeft;
+
+      if (timeLeft <= 10) {
+        timerEl.classList.add('critical');
+      } else {
+        timerEl.classList.remove('critical');
+      }
+
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        endGame();
+      } else {
+        timeLeft--;
+      }
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timeLeft = 90;
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function endGame() {
+      gameOver = true;
+      inputBox.disabled = true;
+      submitBtn.disabled = true;
+      clearBtn.disabled = true;
+      
+      finalScoreEl.textContent = `Osvojili ste ${score} bodova.`;
+
+      // Prikaži modal
+      resultModal.style.display = 'flex';
+
+      // Sačuvaj rezultat - isto kao u Ko zna zna
+      localStorage.setItem('slagalicaScore', score);
+      localStorage.setItem('slagalicaPlayed', 'true');
+    }
+
+    // Dugme za povratak na meni
+    btnToStart.onclick = () => {
+      window.location.href = '../igra.html';  // ili putanja koja ti odgovara
+    }
+
+    // Pokreni igru
+    generateLetters();
+    startTimer();
+  </script>
+</body>
+</html>
