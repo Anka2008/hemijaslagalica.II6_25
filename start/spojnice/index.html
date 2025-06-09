@@ -464,8 +464,8 @@ function checkEndGame() {
 function endGame() {
   gameEnded = true;
   clearInterval(timerInterval);
-  localStorage.setItem('spojniceScore', score);
-  localStorage.setItem('score', score);  // Čuvanje rezultata u localStorage
+  localStorage.setItem('spojniceScore', score+timeLeft);
+  localStorage.setItem('score', score+timeLeft);  // Čuvanje rezultata u localStorage
   document.getElementById("finalScore").innerText = `Osvojili ste ${score+timeLeft} bodova`;
   document.getElementById("resultModal").style.display = "flex";
   localStorage.setItem('spojnicePlayed', 'true');

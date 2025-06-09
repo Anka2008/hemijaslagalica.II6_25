@@ -111,11 +111,30 @@
       color: #2D2D2D;
       font-family: 'Arial', sans-serif;
       width: 100%;
+      margin-bottom: 10px;
     }
     
     input[type="text"]:focus {
       border: 2px solid #6a4c93;
       outline: none;
+    }
+    
+    .check-btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(45deg, #6a4c93, #ff6b35);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .check-btn:hover {
+      background: linear-gradient(45deg, #ff6b35, #6a4c93);
+      transform: translateY(-2px);
     }
     
     .correct {
@@ -359,20 +378,25 @@
   <div class="input-group">
     <div class="input-column">
       <input type="text" id="inputA" placeholder="Rešenje za kolonu A" onkeypress="handleKeyPress(event, 'A')">
+      <button class="check-btn" onclick="checkSolution('A')">Provjeri</button>
     </div>
     <div class="input-column">
       <input type="text" id="inputB" placeholder="Rešenje za kolonu B" onkeypress="handleKeyPress(event, 'B')">
+      <button class="check-btn" onclick="checkSolution('B')">Provjeri</button>
     </div>
     <div class="input-column">
       <input type="text" id="inputC" placeholder="Rešenje za kolonu C" onkeypress="handleKeyPress(event, 'C')">
+      <button class="check-btn" onclick="checkSolution('C')">Provjeri</button>
     </div>
     <div class="input-column">
       <input type="text" id="inputD" placeholder="Rešenje za kolonu D" onkeypress="handleKeyPress(event, 'D')">
+      <button class="check-btn" onclick="checkSolution('D')">Provjeri</button>
     </div>
   </div>
   
   <div style="margin: 20px 0;">
     <input type="text" id="inputFinal" placeholder="Konačno rešenje" style="width: 100%; max-width: 500px; margin-bottom: 10px;" onkeypress="handleFinalKeyPress(event)">
+    <button class="check-btn" onclick="checkFinalSolution()" style="max-width: 500px; margin: 0 auto;">Provjeri konačno rešenje</button>
   </div>
 </div>
 
