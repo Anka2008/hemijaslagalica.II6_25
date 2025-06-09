@@ -165,72 +165,86 @@
 
   <button class="admin-btn" id="adminBtn">🔒</button>
 
-  <script>
-    const adminBtn = document.getElementById('adminBtn');
-    const deleteHeader = document.getElementById('deleteHeader');
-    const rankingTable = document.getElementById('rankingTable').getElementsByTagName('tbody')[0];
-    const PASSWORD = "admin123";
-    let deleteMode = false;
+<script>
+  const adminBtn = document.getElementById('adminBtn');
+  const deleteHeader = document.getElementById('deleteHeader');
+  const rankingTable = document.getElementById('rankingTable').getElementsByTagName('tbody')[0];
+  const PASSWORD = "admin123";
+  let deleteMode = false;
 
-    function loadLeaderboard() {
-      rankingTable.innerHTML = '';
-      deleteHeader.style.display = deleteMode ? 'table-cell' : 'none';
-      
-      let leaderboard = JSON.parse(localStorage.getItem('rangLista')) || [];
-      leaderboard.sort((a, b) => b.rezultat - a.rezultat);
-      
-      leaderboard.forEach((player, index) => {
-        const row = rankingTable.insertRow();
-        
-        row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${player.ime}</td>
-          <td>${player.rezultat}</td>
-        `;
-        
-        if (deleteMode) {
-          const deleteCell = row.insertCell();
-          deleteCell.innerHTML = '<span class="delete-btn" data-name="${player.ime}">🗑️</span>';
-        }
-      });
-      
-      // Add event listeners to delete buttons
-      document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const playerName = e.target.getAttribute('data-name');
-          deletePlayer(playerName);
-        });
-      });
-    }
-    
-    function deletePlayer(name) {
-      let leaderboard = JSON.parse(localStorage.getItem('rangLista')) || [];
-      leaderboard = leaderboard.filter(player => player.ime !== name);
+  // Migriraj postojeće rezultate ako nemaju ID
+  function migrateLeaderboard() {
+    let leaderboard = JSON.parse(localStorage.getItem('rangLista')) || [];
+    if (leaderboard.length > 0 && !leaderboard[0].id) {
+      leaderboard = leaderboard.map(player => ({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        ime: player.ime,
+        rezultat: player.rezultat
+      }));
       localStorage.setItem('rangLista', JSON.stringify(leaderboard));
-      loadLeaderboard();
     }
+  }
+
+  function loadLeaderboard() {
+    migrateLeaderboard(); // Osiguraj da svi rezultati imaju ID
     
-    function toggleDeleteMode() {
-      if (!deleteMode) {
-        const password = prompt("Unesite administratorsku lozinku:");
-        if (password === PASSWORD) {
-          deleteMode = true;
-          adminBtn.textContent = '🔓';
-          adminBtn.style.color = 'var(--primary)';
-        } else {
-          alert("Pogrešna lozinka!");
-          return;
-        }
-      } else {
-        deleteMode = false;
-        adminBtn.textContent = '🔒';
-        adminBtn.style.color = 'var(--secondary)';
+    rankingTable.innerHTML = '';
+    deleteHeader.style.display = deleteMode ? 'table-cell' : 'none';
+    
+    let leaderboard = JSON.parse(localStorage.getItem('rangLista')) || [];
+    leaderboard.sort((a, b) => b.rezultat - a.rezultat);
+    
+    leaderboard.forEach((player, index) => {
+      const row = rankingTable.insertRow();
+      
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${player.ime}</td>
+        <td>${player.rezultat}</td>
+      `;
+      
+      if (deleteMode) {
+        const deleteCell = row.insertCell();
+        deleteCell.innerHTML = `<span class="delete-btn" data-id="${player.id}">🗑️</span>`;
       }
-      loadLeaderboard();
-    }
+    });
     
-    adminBtn.addEventListener('click', toggleDeleteMode);
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const playerId = parseInt(e.target.getAttribute('data-id'));
+        deletePlayer(playerId);
+      });
+    });
+  }
+  
+  function deletePlayer(id) {
+    let leaderboard = JSON.parse(localStorage.getItem('rangLista')) || [];
+    leaderboard = leaderboard.filter(player => player.id !== id);
+    localStorage.setItem('rangLista', JSON.stringify(leaderboard));
     loadLeaderboard();
-  </script>
+  }
+  
+  function toggleDeleteMode() {
+    if (!deleteMode) {
+      const password = prompt("Unesite administratorsku lozinku:");
+      if (password === PASSWORD) {
+        deleteMode = true;
+        adminBtn.textContent = '🔓';
+        adminBtn.style.color = 'var(--primary)';
+      } else {
+        alert("Pogrešna lozinka!");
+        return;
+      }
+    } else {
+      deleteMode = false;
+      adminBtn.textContent = '🔒';
+      adminBtn.style.color = 'var(--secondary)';
+    }
+    loadLeaderboard();
+  }
+  
+  adminBtn.addEventListener('click', toggleDeleteMode);
+  loadLeaderboard();
+</script>
 </body>
 </html>

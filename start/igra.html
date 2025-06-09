@@ -219,14 +219,6 @@
       });
 
       document.getElementById('totalScore').textContent = totalScore;
-      
-      // Proveri da li su sve igre završene
-      if (checkAllGamesCompleted()) {
-        upisiURangListu();
-        setTimeout(() => {
-          window.location.href = 'ranglista.html';
-        }, 1000);
-      }
     }
 
     function updateButtons() {
@@ -247,10 +239,19 @@
       // Proveri da li su sve igre završene
       if (checkAllGamesCompleted()) {
         upisiURangListu();
+        resetGames(); // Resetuj igre nakon upisa u rang listu
         setTimeout(() => {
           window.location.href = 'ranglista.html';
         }, 1000);
       }
+    }
+
+    function resetGames() {
+      buttons.forEach(btn => {
+        localStorage.removeItem(btn.dataset.game + 'Score');
+      });
+      updateButtons();
+      updatePlayerInfo();
     }
 
     function upisiURangListu() {
@@ -301,13 +302,7 @@
         localStorage.setItem('rangLista', JSON.stringify(rankingData));
       }
 
-      // obrisi bodove
-      buttons.forEach(btn => {
-        localStorage.removeItem(btn.dataset.game + 'Score');
-      });
-
-      updateButtons();
-      updatePlayerInfo();
+      resetGames();
 
       // preusmjeri na index.html foldera prije
       window.location.href = '../index.html';
